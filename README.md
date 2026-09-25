@@ -1,83 +1,89 @@
-#  Project JarvisBox: The AI-Powered Voice Assistant Terminal
+# Project JarvisBox
 
-**Status:**  In Progress – Alpha Prototype  
-**Created by:** Matthew Busel – AI/ML Engineer & Systems Developer  
+A plan for a desk-sized, voice-controlled AI assistant on a Raspberry Pi: wake word, speech-to-text, an LLM, text-to-speech, and a bit of personality through LEDs, a servo and a small OLED face.
 
----
+> **Status: design and application skeleton. It does not run yet.** The repository contains the main loop (`main.py`) that wires the components together, but the modules it imports (`core/`, `hardware/`, `utils/`) are not in the repository, and `requirements.txt` and `settings.yaml` are empty.
 
-##  Overview
+## Why
 
-**JarvisBox** is a voice-activated, AI-powered, hardware-integrated assistant designed to replicate the functionality of a real-world "JARVIS" system. It combines **LLM intelligence**, **multimodal input/output**, and **physical expressiveness** into a standalone smart terminal. Think ChatGPT… but it talks, listens, learns, automates tasks, and lives on your desk.
+Smart speakers are closed and cloud-bound; chat assistants live in a browser tab. JarvisBox aims for something in between: a standalone terminal that listens for "Hey Jarvis", answers with an LLM (cloud or local), can automate tasks on your machine, and physically reacts, turning toward the speaker and showing its state on LEDs and a tiny screen.
 
----
+## What exists today
 
-## ⚙️ Features (Planned & In Progress)
+[`main.py`](./main.py) defines the `JarvisBox` class and its main loop:
 
-###  Core AI Capabilities
--  GPT-powered voice interaction (ChatGPT API, OpenAI/Local LLMs)
--  Long-term memory & personalization
--  Calendar, weather, and task querying
--  Plugin-style custom agents (file parsing, market scan, etc.)
+1. Load `config/settings.yaml` and a `.env` file.
+2. Initialize hardware (`LEDController`, `ServoController`, `DisplayController`) and AI components (`WakeWordDetector`, `SpeechToTextEngine`, `TextToSpeechEngine`, `LLMInterface`).
+3. Loop: wait for the wake word, turn the servo toward the speaker, record and transcribe speech, send it to the LLM, show a short version on the display, speak the reply, return to idle.
+4. On `SIGINT`/`SIGTERM`, release the hardware and exit.
 
-### Voice Interface
--  Wake-word detection + passive listening (`Hey Jarvis`)
--  Natural TTS (ElevenLabs / Coqui.ai)
--  Speech-to-text with noise cancellation (Whisper, Deepgram, etc.)
+It expects these modules, none of which exist yet:
 
-###  Agent Utilities
--  Local system automation: open apps, write scripts, Git integration
--  Home automation (Home Assistant / IoT hooks)
--  GitHub repo scaffolding, commit summaries, file watcher
+```
+core/wake_word.py            WakeWordDetector
+core/speech_to_text.py       SpeechToTextEngine
+core/text_to_speech.py       TextToSpeechEngine
+core/llm_interface.py        LLMInterface
+hardware/led_controller.py   LEDController
+hardware/servo_controller.py ServoController
+hardware/display_controller.py DisplayController
+utils/logging_utils.py       setup_logger
+config/settings.yaml         (the repo's settings.yaml is at the root and empty)
+```
 
-### On-Device Intelligence (Stretch Goals)
--  Quantized LLM support (Mistral, LLaMA3, Ollama)
--  Offline fallback mode
+It also needs `python-dotenv` and `PyYAML`.
 
-###  Physical Expressiveness
--  LED ring for emotion/confidence output
--  Servo rotation toward speaker
--  OLED face display for expression, waveform, or info
-- Proximity/motion sensing (approaches when you enter room)
+## Planned features
 
----
+**AI**
+- Voice conversation through the OpenAI API or a local model
+- Long-term memory and personalization
+- Calendar, weather and task queries
+- Plugin-style agents (file parsing, market scans and similar)
 
-##  Hardware Stack
--  Raspberry Pi 5 (or Jetson Nano / local API node)
--  ReSpeaker 2-Mic Array or USB mic
--  Hi-Fi speaker / Bluetooth audio
--  OLED screen (0.96" I2C), optional webcam
--  Servo motor, RGB LED strip, optional NFC tag switch
+**Voice**
+- Wake word (`Hey Jarvis`) with passive listening
+- Speech-to-text with noise handling (Whisper, Deepgram or similar)
+- Natural text-to-speech (ElevenLabs or Coqui)
 
----
+**Automation**
+- Open apps, write scripts, Git integration
+- Home Assistant and IoT hooks
+- Repo scaffolding, commit summaries, file watching
 
-##  Tech Stack
-- Python, Node.js (for hardware API bridges)
-- OpenAI / LLaMA (Ollama for local testing)
-- PyTorch, OpenCV, Whisper, Coqui TTS
-- MQTT for hardware comms
-- Flask/FastAPI for local API exposure
+**On-device (stretch)**
+- Quantized local LLMs (Mistral, Llama 3 via Ollama)
+- Offline fallback mode
 
----
+**Physical expressiveness**
+- LED ring for mood and confidence
+- Servo that turns toward the speaker
+- OLED face for expressions, waveforms or info
+- Proximity and motion sensing
 
-##  Roadmap
-- [x] Basic GPT voice interface + STT/TTS
-- [ ] Multimodal integration (OLED, LEDs, servo)
+## Hardware plan
+
+- Raspberry Pi 5 (or Jetson Nano, or a local API node)
+- ReSpeaker 2-Mic Array or a USB microphone
+- Speaker (wired or Bluetooth)
+- 0.96" I2C OLED display, optional webcam
+- Servo, RGB LED strip, optional NFC tag switch
+
+## Planned software stack
+
+Python for the core, Node.js for hardware bridges if needed, OpenAI or Ollama for the LLM, Whisper and Coqui TTS for speech, MQTT for hardware messages, and Flask or FastAPI for a local API.
+
+## Roadmap
+
+- [x] Main application loop and component interfaces (`main.py`)
+- [ ] Core modules: wake word, STT, TTS, LLM interface
+- [ ] Hardware drivers: LEDs, servo, OLED
+- [ ] Config file and dependency list
 - [ ] Local LLM fallback
-- [ ] Long-term memory via vector DB
-- [ ] “Mood” switching + personalities
-- [ ] Full launch video + demo site
+- [ ] Long-term memory via a vector database
+- [ ] Mood switching and personalities
+- [ ] Demo video
 
----
+## Contributing
 
-##  Why This Project?
-This project serves as a showcase of:
-- Embedded AI system design
-- End-to-end machine learning integration
-- Edge AI deployment
-- Hardware/software interfacing
-- User-centric product development
-
-
-
-
-
+The quickest way to get this talking is to implement the four `core/` modules with simple backends (for example `openai-whisper`, `pyttsx3` and an OpenAI or Ollama client) and stub out the hardware classes so it can run on a laptop first.
